@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: post_system_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: Post-System
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_lr2_data:/var/lib/postgresql/data
+      - ./docs/schema_init.sql:/docker-entrypoint-initdb.d/01_schema_init.sql:ro
+      - ./docs/views_procedures_triggers.sql:/docker-entrypoint-initdb.d/02_views_procedures_triggers.sql:ro
+      - ./docs/test_init_data.sql:/docker-entrypoint-initdb.d/03_test_init_data.sql:ro
+      - ./docs/lr2_sql_extension.sql:/docker-entrypoint-initdb.d/04_lr2_sql_extension.sql:ro
+
+  mongodb:
+    image: mongo:8.0
+    container_name: post_system_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: post_system_nosql
+    volumes:
+      - mongo_lr2_data:/data/db
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: post_system_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_lr2_data:/data
+
+volumes:
+  postgres_lr2_data:
+  mongo_lr2_data:
+  redis_lr2_data:
